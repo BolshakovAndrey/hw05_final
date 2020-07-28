@@ -1,22 +1,33 @@
-attrs==19.3.0             # via pytest
-certifi==2019.9.11        # via requests
-chardet==3.0.4            # via requests
-django==2.2.6
-idna==2.8                 # via requests
-importlib-metadata==1.5.0  # via pluggy, pytest
-more-itertools==8.2.0     # via pytest
-packaging==20.1           # via pytest
-pillow==7.0.0
-pluggy==0.13.1            # via pytest
-py==1.8.1                 # via pytest
-pyparsing==2.4.6          # via packaging
+appdirs==1.4.4
+attrs==19.3.0
+beautifulsoup4==4.9.1
+blessings==1.7
+bpython==0.19
+certifi==2020.6.20
+chardet==3.0.4
+curtsies==0.3.1
+distlib==0.3.0
+Django==2.2.9
+django-bootstrap4==2.1.1
+django-debug-toolbar==2.2
+filelock==3.0.12
+greenlet==0.4.16
+idna==2.9
+more-itertools==8.3.0
+packaging==20.4
+Pillow==7.2.0
+pluggy==0.13.1
+py==1.8.1
+Pygments==2.6.1
+pyparsing==2.4.7
+pytest==5.4.3
 pytest-django==3.8.0
-pytest==5.3.5             # via pytest-django
-pytz==2019.3              # via django
-requests==2.22.0
-six==1.14.0               # via packaging
+pytz==2020.1
+requests==2.24.0
+six==1.15.0
 sorl-thumbnail==12.6.3
-sqlparse==0.3.0           # via django
-urllib3==1.25.6           # via requests
-wcwidth==0.1.8            # via pytest
-zipp==2.2.0               # via importlib-metadata
+soupsieve==2.0.1
+sqlparse==0.3.1
+urllib3==1.25.9
+virtualenv==20.0.25
+wcwidth==0.2.4

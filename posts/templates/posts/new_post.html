@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if is_edit %}
+        Редактирование записи
+    {% else %}
+        Новая запись
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% load user_filters %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 p-5">
+            <div class="card">
+                <div class="card-header">{% if is_edit %}Редактирование записи{% else %}Добавить запись{% endif %}</div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" action="
+                            {% if is_edit %}{% url "post_edit" user.username post.pk %}{% else %}{% url "new_post" %}{% endif %}">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group row" aria-required={% if field.field.required %}"true"{% else %}"false"{% endif %}>
+                                <label for="{{ field.id_for_label }}"class="col-md-4 col-form-label text-md-right">{{ field.label }}</label>
+                                <div class="col-md-6">
+                                    {{ field|addclass:"form-control" }}
+                                    {% if field.help_text %}
+                                        <small id="{{ field.id_for_label }}-help"
+                                               class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                        <div class="col-md-6 offset-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                {% if is_edit %}Сохранить{% else %}Добавить{% endif %}
+                            </button>
+                        </div> <!-- col -->
+                    </form>
+                </div> <!-- card body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+    </div> <!-- row -->
+{% endblock %}

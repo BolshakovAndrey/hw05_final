@@ -72,7 +72,7 @@ class TestComment:
         assert response.status_code != 404, \
             'Страница `/<username>/<post_id>/comment/` не найдена, проверьте этот адрес в *urls.py*'
 
-        response = client.post(url, data={'text': 'Новый коммент!'})
+        response = client.post(url, data={'text': 'Новый коммент!   '})
         if not(response.status_code in (301, 302) and response.url.startswith(f'/auth/login')):
             assert False, 'Проверьте, что не авторизованного пользователя `/<username>/<post_id>/comment/` отправляете на страницу авторизации'
 
