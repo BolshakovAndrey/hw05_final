@@ -1,15 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from .models import Post, Group, User, Comment, Follow
 from django.contrib.auth.decorators import login_required
-from .forms import PostForm, CommentForm
-from django.shortcuts import redirect
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
-from django.db.models import Count
+
+from .forms import CommentForm, PostForm
+from .models import Follow, Group, Post, User
 
 
-@cache_page(20, key_prefix='index_page')
+@cache_page(20, key_prefix="index_page")
 def index(request):
     """
     Gets a selection of 10 entries per page.
@@ -157,8 +155,7 @@ def add_comment(request, username, post_id):
     comment.author = request.user
     comment.post = post
     form.save()
-    return redirect("post_view",username,post_id)
-
+    return redirect("post_view", username, post_id)
 
 
 @login_required
@@ -207,7 +204,7 @@ def profile_unfollow(request, username):
     return redirect("profile", username=username)
 
 
-def page_not_found(request, exception):
+def page_not_found(request):
     return render(request, "misc/404.html", {"path": request.path}, status=404)
 
 
