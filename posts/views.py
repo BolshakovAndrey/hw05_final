@@ -149,7 +149,7 @@ def add_comment(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id, author__username=username)
     form = CommentForm(request.POST or None)
     if not form.is_valid():
-        return render(request, "comments.html",
+        return render(request, "includes/comments.html",
                       {"form": form, "post": post})
     comment = form.save(commit=False)
     comment.author = request.user
@@ -166,9 +166,7 @@ def follow_index(request):
     :return: the page with posts of authors that the current user is subscribed to.
     """
     author = get_object_or_404(User, username=request.user)
-    follow = author.follower.all()
-    authors = [item.author for item in follow]
-    post_list = Post.objects.filter(author__username__in=authors).all()
+    post_list = Post.objects.filter(author__following__user=request.user)
     count_posts = post_list.count()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get("page")
@@ -204,7 +202,7 @@ def profile_unfollow(request, username):
     return redirect("profile", username=username)
 
 
-def page_not_found(request):
+def page_not_found(request,exception):
     return render(request, "misc/404.html", {"path": request.path}, status=404)
 
 

@@ -1,11 +1,12 @@
 import tempfile
+from io import BytesIO
 from urllib.parse import urljoin
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Comment, Follow, Group, Post, User
-
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 class PostPageTest(TestCase):
 
@@ -105,7 +106,7 @@ class PostPageTest(TestCase):
             data={"text": self.text, "group": self.group.id},
             follow=True
         )
-        for url in (self.urls()):
+        for url in self.urls():
             with self.subTest(url=url):
                 self.check_post_content(url, self.user, self.group, self.text, self.edit)
 
@@ -147,23 +148,24 @@ class PostPageTest(TestCase):
         profile page, group page, and post page.
         """
         post = Post.objects.create(text="Post with image", group=self.group, author=self.user)
-        with tempfile.TemporaryDirectory() as temp_directory:
-            with override_settings(MEDIA_ROOT=temp_directory):
-                with open("tests/pic.png", "rb") as img:
-                    response = self.authorized_client.post(reverse(
-                        "post_edit",
-                        kwargs={"username": self.user.username, "post_id": post.id}),
-                        data={"text": "Post with image", "image": img}, follow=True)
-                    for url in (self.urls()):
-                        with self.subTest(url=url):
-                            self.assertEqual(response.status_code, 200)
-                            self.assertContains(response, "test_id")
+        img = BytesIO(
+            b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+            b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+        image_name = 'foo_image.gif'
+        img = SimpleUploadedFile(image_name, img.read(), content_type='image/gif')
+        response = self.authorized_client.post(reverse(
+            "post_edit",kwargs={"username": self.user.username, "post_id": post.id}),
+            data={"text": "Post with image", "image": img}, follow=True)
+        for url in (self.urls()):
+            with self.subTest(url=url):
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "test_id")
 
     def test_non_image(self):
         """
         Check the protection against downloading files in non-graphic formats
         """
-        with open("tests/file.txt") as fp:
+        with open("urls.py") as fp:
             response = self.client.post("/new/", {"text": "Some text", "image": fp}, follow=True)
             self.assertNotContains(response, "test_id")
 
