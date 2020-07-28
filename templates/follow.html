@@ -4,15 +4,16 @@
 
     <h1> Посты избранных авторов </h1>
     <div class="card-body">
-        {% include "menu.html" with follow=True %}
+        {% include "includes/menu.html" with follow=True %}
         <div class="container">
             {% for post in page %}
-                {% include "post_item.html" with post=post %}
+                {% include "includes/post_item.html" with post=post %}
             {% endfor %}
         </div>
 
         {% if page.has_other_pages %}
-            {% include "paginator.html" with items=page paginator=paginator %}
+            {% include "includes/paginator.html" with items=page paginator=paginator %}
         {% endif %}
+    </div>
 
 {% endblock %}

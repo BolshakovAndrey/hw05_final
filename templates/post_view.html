@@ -47,8 +47,8 @@
                             <!-- Link to the author"s page in the "href" attribute author"s username in the link text -->
                             <a href=" {% url "profile" username %} "><strong class="d-block text-gray-dark">{{ username }}</strong></a>
                             <!-- The text of the post -->
-                        <p>{{ post.text|linebreaksbr }}</p>
-                        {% include "comments.html" with post=post items=items %}
+                            <p>{{ post.text|linebreaksbr }}</p>
+                            {% include "includes/comments.html" with post=post items=items %}
                         </p>
 
                         <div class="d-flex justify-content-between align-items-center">
