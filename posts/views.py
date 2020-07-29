@@ -202,7 +202,7 @@ def profile_unfollow(request, username):
     return redirect("profile", username=username)
 
 
-def page_not_found(request,exception):
+def page_not_found(request, exception):  # noqa
     return render(request, "misc/404.html", {"path": request.path}, status=404)
 
 

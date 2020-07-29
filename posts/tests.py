@@ -1,12 +1,12 @@
-import tempfile
 from io import BytesIO
 from urllib.parse import urljoin
 
-from django.test import Client, TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from posts.models import Comment, Follow, Group, Post, User
-from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 class PostPageTest(TestCase):
 
@@ -40,7 +40,8 @@ class PostPageTest(TestCase):
         urls = [
             reverse("index"),
             reverse("profile", kwargs={"username": self.user.username}),
-            reverse("post_view", kwargs={"username": self.user.username, "post_id": 1}),
+            reverse("post_view",
+                    kwargs={"username": self.user.username, "post_id": 1}),
             reverse("group_posts", kwargs={"slug": self.group.slug})]
         return urls
 
@@ -79,7 +80,8 @@ class PostPageTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Post.objects.count(), 1)
-        self.check_post_content("new_post", self.user, self.group, self.text, self.edit)
+        self.check_post_content(
+            "new_post", self.user, self.group, self.text, self.edit)
 
     def test_new_post_unauthorized_user(self):
         """
@@ -90,7 +92,8 @@ class PostPageTest(TestCase):
             data={"text": self.text, "group": self.group.id},
             follow=True
         )
-        # since it is impossible to add query parameters to reverse, we will collect url
+        # since it is impossible to add query parameters to reverse,
+        # we will collect url
         url = urljoin(reverse("login"), "?next=/new/")
         self.assertRedirects(response, url)
         self.assertEqual(Post.objects.count(), 0)
@@ -115,12 +118,15 @@ class PostPageTest(TestCase):
         An authorized user can edit his post and its content will change on all linked pages.
         """
         post = Post.objects.create(text=self.text, group=self.group, author=self.user, )
-        self.authorized_client.post(reverse(
-            "post_edit", kwargs={"username": post.author, "post_id": post.id}),
-            data={"text": self.edit, "group": post.group.id, }, follow=True)
+        self.authorized_client.post(
+            reverse("post_edit",
+                    kwargs={"username": post.author,
+                            "post_id": post.id}),
+            data={"text": self.edit,
+                  "group": post.group.id, }, follow=True)
         # In the loop, go over all the url where the changes should be displayed:
         # home page, the authors profile and on the publication page
-        for url in (self.urls()):
+        for url in self.urls():
             with self.subTest(url=url):
                 self.check_post_content(url, self.user, self.group, self.text, self.edit)
 
@@ -147,16 +153,21 @@ class PostPageTest(TestCase):
         Checks that the image post is displayed correctly on the main page,
         profile page, group page, and post page.
         """
-        post = Post.objects.create(text="Post with image", group=self.group, author=self.user)
+        post = Post.objects.create(text="Post with image",
+                                   group=self.group,
+                                   author=self.user)
         img = BytesIO(
             b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
             b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
         image_name = 'foo_image.gif'
         img = SimpleUploadedFile(image_name, img.read(), content_type='image/gif')
-        response = self.authorized_client.post(reverse(
-            "post_edit",kwargs={"username": self.user.username, "post_id": post.id}),
-            data={"text": "Post with image", "image": img}, follow=True)
-        for url in (self.urls()):
+        response = self.authorized_client.post(
+            reverse("post_edit",
+                    kwargs={"username": self.user.username,
+                            "post_id": post.id}),
+            data={"text": "Post with image",
+                  "image": img}, follow=True)
+        for url in self.urls():
             with self.subTest(url=url):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, "test_id")
@@ -165,8 +176,9 @@ class PostPageTest(TestCase):
         """
         Check the protection against downloading files in non-graphic formats
         """
-        with open("urls.py") as fp:
-            response = self.client.post("/new/", {"text": "Some text", "image": fp}, follow=True)
+        with open("urls.py") as file:
+            response = self.authorized_client.post(
+                "/new/", {"text": "Some text", "image": file}, follow=True)
             self.assertNotContains(response, "test_id")
 
     def test_entry_appears_feed(self):
@@ -174,19 +186,24 @@ class PostPageTest(TestCase):
         The new user record appears in the feed of those who subscribe to it
         and does not appear in the feed of those who do not subscribe to it.
         """
-        self.post = Post.objects.create(text="Follow me!", group=self.group, author=self.user)
+        self.post = Post.objects.create(text="Follow me!",
+                                        group=self.group,
+                                        author=self.user)
         self.authorized_client.post(reverse("new_post"),
-                                    data={"Follow me!": self.text, "group": self.group.id},
+                                    data={"Follow me!": self.text,
+                                          "group": self.group.id},
                                     follow=True)
         self.authorized_client.logout()
-        follower = User.objects.create_user(username="follower", email="follower@.com", password="123456")
+        follower = User.objects.create_user(username="follower", password="123456")
         self.authorized_client.force_login(follower)
         # follow
-        self.authorized_client.get(reverse("profile_follow", kwargs={"username": "test_user"}), follow=True)
+        self.authorized_client.get(reverse(
+            "profile_follow", kwargs={"username": "test_user"}), follow=True)
         response_true = self.authorized_client.get(reverse("follow_index"))
         self.assertContains(response_true, "Follow me!")
         # unfollow
-        self.authorized_client.get(reverse("profile_unfollow", kwargs={"username": "test_user"}), follow=True)
+        self.authorized_client.get(reverse(
+            "profile_unfollow", kwargs={"username": "test_user"}), follow=True)
         response_false = self.authorized_client.get(reverse("follow_index"))
         self.assertNotContains(response_false, "Follow me!")
 
@@ -207,8 +224,9 @@ class PostPageTest(TestCase):
         Checks whether an unauthorized user can't subscribe to others.
         """
         follower = User.objects.create_user(username="follower", password="12345")
-        self.unauthorized_client.post(reverse(
-            "profile_follow", kwargs={"username": follower.username, }))
+        self.unauthorized_client.post(
+            reverse("profile_follow",
+                    kwargs={"username": follower.username}))
         self.assertEqual(follower.following.count(), 0)
 
     def test_check_unfollow(self):
@@ -228,9 +246,12 @@ class PostPageTest(TestCase):
 
         self.author = User.objects.create(username="leo", password="123456")
         self.post = Post.objects.create(text="Test post!", author=self.author)
-        response = self.authorized_client.post(reverse(
-            "add_comment", kwargs={"username": self.author, "post_id": self.post.id}),
-            data={"text": "Test comment", "author": self.user}, follow=True, )
+        response = self.authorized_client.post(
+            reverse("add_comment",
+                    kwargs={"username": self.author,
+                            "post_id": self.post.id}),
+            data={"text": "Test comment",
+                  "author": self.user}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.comment = Comment.objects.last()
         self.assertEqual(Comment.objects.count(), 1)
@@ -242,8 +263,12 @@ class PostPageTest(TestCase):
         """
         self.author = User.objects.create(username="leo", password="123456")
         self.post = Post.objects.create(text="Test post!", author=self.user)
-        response = self.unauthorized_client.post(reverse(
-            "add_comment", kwargs={"username": self.user.username, "post_id": self.post.id}),
-            data={"text": "Test comment", "author": self.user.id, "post": self.post.id})
+        response = self.unauthorized_client.post(
+            reverse("add_comment",
+                    kwargs={"username": self.user.username,
+                            "post_id": self.post.id}),
+            data={"text": "Test comment",
+                  "author": self.user.id,
+                  "post": self.post.id})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Comment.objects.count(), 0)
